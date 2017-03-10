@@ -1,0 +1,123 @@
+using System;
+using System.Collections;
+using System.Text;
+
+namespace DijkstraMethod
+{
+    internal class Program
+    {
+        //V1到V7的邻接矩阵
+        private static readonly int[,] Metro = new int[7, 7]
+        {
+            {0, 3, 7, 5, 2048, 2048, 2048},
+            {3, 0, 2, 2048, 6, 2048, 2048},
+            {7, 2, 0, 3, 3, 2048, 2048},
+            {5, 2048, 3, 0, 2048, 2, 8},
+            {2048, 6, 3, 2048, 0, 2048, 2},
+            {2048, 2048, 2048, 2, 2048, 0, 2},
+            {2048, 2048, 2048, 8, 2, 2, 0}
+        };
+
+        private static readonly int row = 7;
+        private readonly int[] distance = new int[7]; //用以每次查询存放数据
+        private readonly bool[] Isfor = new bool[7] {false, false, false, false, false, false, false};
+        private readonly int[] prev = new int[7]; //用以存储前一个最近顶点的下标
+        private readonly ArrayList S = new ArrayList(row); //S储存确定最短路径的顶点的下标
+        private readonly ArrayList U = new ArrayList(row); //U中存储尚未确定路径的顶点的下标
+
+        /// <summary>
+        ///     dijkstra算法的实现部分
+        /// </summary>
+        /// <param name="Start"></param>
+        private void FindWay(int Start)
+        {
+            S.Add(Start);
+            Isfor[Start] = true;
+            for (var i = 0; i < row; i++)
+                if (i != Start)
+                    U.Add(i);
+            for (var i = 0; i < row; i++)
+            {
+                distance[i] = Metro[Start, i];
+                prev[i] = 0;
+            }
+            var Count = U.Count;
+            while (Count > 0)
+            {
+                var min_index = (int) U[0]; //假设U中第一个数存储的是最小的数的下标
+                foreach (int r in U)
+                    if (distance[r] < distance[min_index])
+                        min_index = r;
+                S.Add(min_index); //S加入这个最近的点
+                // Console.WriteLine("刚添加的中间点为：");
+                // Console.WriteLine(min_index);
+                Isfor[min_index] = true;
+                U.Remove(min_index); //U中移除这个点；
+                foreach (int r in U)
+                    if (distance[r] > distance[min_index] + Metro[min_index, r])
+                    {
+                        distance[r] = distance[min_index] + Metro[min_index, r];
+                        prev[r] = min_index;
+                        //到r经过min_index这条中间最短
+                    }
+                    else
+                    {
+                        distance[r] = distance[r];
+                    }
+                Count = U.Count;
+            }
+        }
+
+        /// <summary>
+        ///     把生成数据显示出来
+        /// </summary>
+        private void display()
+        {
+            for (var i = 1; i < row; i++)
+            {
+                Console.Write("V0到V{0}的最短路径为→V0", i);
+                var prePoint = prev[i];
+
+                var sb = new StringBuilder(10);
+                if (prePoint > 0)
+
+                {
+                    var NocomlishMiddle = prePoint;
+                    var LowToUpper = new ArrayList();
+                    while (NocomlishMiddle != 0)
+                    {
+                        LowToUpper.Add(Convert.ToInt32(NocomlishMiddle));
+
+
+                        NocomlishMiddle = prev[NocomlishMiddle];
+                    }
+                    LowToUpper.Sort();
+                    foreach (var item in LowToUpper)
+                        sb.Append("-V").Append(item);
+
+                    Console.Write(sb.ToString());
+                    Console.Write("-V{0}", i);
+
+                    Console.WriteLine(":{0}", distance[i]);
+                }
+                else
+                    //sb.Append("-V").Append(i);
+                    //Console.Write(sb.ToString());
+                {
+                    Console.Write("-V{0}", i);
+
+                    Console.WriteLine(":{0}", distance[i]);
+                }
+            }
+        }
+
+
+        private static void Main(string[] args)
+        {
+            var p = new Program();
+            p.FindWay(0);
+            p.display();
+            Console.ReadKey();
+        }
+    }
+}
